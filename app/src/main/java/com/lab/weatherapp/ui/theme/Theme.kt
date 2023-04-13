@@ -31,18 +31,20 @@ private val LightColorPalette = lightColors(
 
 @Composable
 fun WeatherAppTheme(darkTheme: Boolean = isSystemInDarkTheme(), content: @Composable () -> Unit) {
+    val systemUiController = rememberSystemUiController()
+
+    if(darkTheme){
+        systemUiController.setSystemBarsColor(color = Color.Black)
+    } else{
+        systemUiController.setSystemBarsColor(color = Color.White)
+    }
+
     val colors = if (darkTheme) {
         DarkColorPalette
     } else {
         LightColorPalette
     }
 
-    val systemUiController = rememberSystemUiController()
-    if(darkTheme){
-        systemUiController.setSystemBarsColor(color = Color.Black)
-    } else{
-        systemUiController.setSystemBarsColor(color = Color.White)
-    }
 
     MaterialTheme(
         colors = colors,
