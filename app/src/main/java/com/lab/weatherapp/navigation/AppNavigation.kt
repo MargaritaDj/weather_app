@@ -70,14 +70,15 @@ fun AppNavigation() {
 
                         onClick = {
                             if (currentRoute != it.route) {
-                                navController.graph.startDestinationRoute?.let {
-                                    navController.popBackStack(it, true)
-                                }
-
                                 navController.navigate(it.route) {
+                                    navController.graph.startDestinationRoute?.let { route ->
+                                        popUpTo(route) {
+                                            saveState = true
+                                        }
+                                    }
                                     launchSingleTop = true
+                                    restoreState = true
                                 }
-
                             }
                         }
                     )
