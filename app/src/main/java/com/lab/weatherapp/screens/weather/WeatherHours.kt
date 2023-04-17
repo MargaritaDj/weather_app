@@ -22,17 +22,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.lab.weatherapp.R
+import com.lab.weatherapp.sharedpreference.SharedPreference
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun WeatherHours() {
-
     val currentPositionList = remember { mutableStateOf(0) }
 
     val lazyListState: LazyListState = rememberLazyListState()
@@ -71,6 +73,7 @@ fun WeatherHours() {
 @Composable
 fun GraphWeatherHours() {
     data class Temp(val temp: String, val pos: Float, val time: String)
+    val colorTheme = colorResource(SharedPreference(LocalContext.current).getValueColor())
 
     //0.1f - 0.7f, start - 0.7 по убыванию
     val data = listOf(
@@ -100,7 +103,7 @@ fun GraphWeatherHours() {
                         .clip(RoundedCornerShape(10.dp, 10.dp))
                         .fillMaxHeight(it.pos)
                         .width(40.dp)
-                        .background(Color.Blue),
+                        .background(colorTheme),
                     contentAlignment = Alignment.TopCenter
                 ) {
                     Text(

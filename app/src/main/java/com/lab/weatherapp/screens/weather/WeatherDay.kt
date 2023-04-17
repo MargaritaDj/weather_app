@@ -19,12 +19,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.lab.weatherapp.sharedpreference.SharedPreference
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -156,7 +158,12 @@ fun CurrentPositionItemList(currentPosition: Int, totalPoints: Int) {
             for (i in 0 until totalPoints) {
                 Icon(
                     ImageVector.vectorResource(com.lab.weatherapp.R.drawable.point), null,
-                    tint = if (i == currentPosition) Color.Gray else Color.LightGray,
+                    tint =
+                    if (!isSystemInDarkTheme()) {
+                        if (i == currentPosition) Color.Gray else Color.LightGray
+                    } else {
+                        if (i == currentPosition) Color.LightGray else Color.DarkGray
+                    },
                     modifier = Modifier.size(10.dp)
                 )
                 Spacer(modifier = Modifier.width(5.dp))

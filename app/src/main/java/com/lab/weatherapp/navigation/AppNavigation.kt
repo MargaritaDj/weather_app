@@ -1,5 +1,6 @@
 package com.lab.weatherapp.navigation
 
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
@@ -8,6 +9,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -17,6 +20,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.lab.weatherapp.screens.location.SearchLocation
 import com.lab.weatherapp.screens.location.StateTopBarLocation
+import com.lab.weatherapp.sharedpreference.SharedPreference
 
 @Composable
 fun AppNavigation() {
@@ -24,6 +28,7 @@ fun AppNavigation() {
     val stateTopBarLocation = remember { mutableStateOf(StateTopBarLocation.CLOSED) }
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
+    val colorTheme = colorResource(SharedPreference(LocalContext.current).getValueColor())
 
     val items = listOf(
         Routes.Location,
@@ -51,7 +56,9 @@ fun AppNavigation() {
         },
 
         bottomBar = {
-            BottomNavigation(backgroundColor = MaterialTheme.colors.background) {
+            BottomNavigation(
+                backgroundColor = MaterialTheme.colors.background,
+                elevation = if(isSystemInDarkTheme()) { 0.dp } else 20.dp) {
                 items.forEach {
                     BottomNavigationItem(selected = currentRoute == it.route,
                         icon = {
@@ -60,14 +67,14 @@ fun AppNavigation() {
                                 if (it.route == Routes.Weather.route) ImageVector.vectorResource(it.icon as Int)
                                 else it.icon as ImageVector,
                                 contentDescription = it.label,
-                                tint = if (currentRoute == it.route) Color.Blue else Color.LightGray
+                                tint = if (currentRoute == it.route) colorTheme else Color.LightGray
                             )
                         },
 
                         label = {
                             Text(
                                 text = it.label,
-                                color = if (currentRoute == it.route) Color.Blue else Color.LightGray
+                                color = if (currentRoute == it.route) colorTheme else Color.LightGray
                             )
                         },
 
@@ -93,6 +100,7 @@ fun AppNavigation() {
 
 @Composable
 fun TopBarLocations(stateTopBarLocation: MutableState<StateTopBarLocation>) {
+    val colorTheme = colorResource(SharedPreference(LocalContext.current).getValueColor())
     val it = Routes.Location
 
     when(stateTopBarLocation.value){
@@ -101,7 +109,7 @@ fun TopBarLocations(stateTopBarLocation: MutableState<StateTopBarLocation>) {
                 title = {
                     Text(
                         text = it.label,
-                        color = Color.Blue,
+                        color = colorTheme,
                         fontSize = 22.sp,
                         maxLines = 1
                     )
@@ -112,9 +120,10 @@ fun TopBarLocations(stateTopBarLocation: MutableState<StateTopBarLocation>) {
                         stateTopBarLocation.value = StateTopBarLocation.OPENED
                     })
                     {
-                        Icon(Icons.Default.Add, "add", tint = Color.Blue)
+                        Icon(Icons.Default.Add, "add", tint = colorTheme)
                     }
-                }
+                },
+                elevation = if(isSystemInDarkTheme()) { 0.dp } else 20.dp
             )
         }
 
@@ -126,33 +135,38 @@ fun TopBarLocations(stateTopBarLocation: MutableState<StateTopBarLocation>) {
 
 @Composable
 fun TopBarWeather() {
+    val colorTheme = colorResource(SharedPreference(LocalContext.current).getValueColor())
+
     TopAppBar(
         title = {
             Text(
                 text = "г. Санкт-Петербург",
-                color = Color.Blue,
+                color = colorTheme,
                 fontSize = 20.sp,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
         },
-      backgroundColor = MaterialTheme.colors.background
+        backgroundColor = MaterialTheme.colors.background,
+        elevation = if(isSystemInDarkTheme()) { 0.dp } else 20.dp
     )
 }
 
 @Composable
 fun TopBarSettings() {
+    val colorTheme = colorResource(SharedPreference(LocalContext.current).getValueColor())
     val it = Routes.Settings
 
     TopAppBar(
         title = {
             Text(
                 text = it.label,
-                color = Color.Blue,
+                color = colorTheme,
                 fontSize = 22.sp,
                 maxLines = 1
             )
         },
-        backgroundColor = MaterialTheme.colors.background
+        backgroundColor = MaterialTheme.colors.background,
+        elevation = if(isSystemInDarkTheme()) { 0.dp } else 20.dp
     )
 }

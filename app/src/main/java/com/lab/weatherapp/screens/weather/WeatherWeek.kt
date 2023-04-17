@@ -5,6 +5,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.snapping.SnapLayoutInfoProvider
 import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
@@ -22,11 +23,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.lab.weatherapp.R
+import com.lab.weatherapp.sharedpreference.SharedPreference
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -194,13 +198,13 @@ fun ProbabilityPrecipitation(precipitation: String){
             .width(60.dp)
             .clip(RoundedCornerShape(10.dp, 0.dp, 0.dp, 10.dp))
             .background(
-                if (precipitation == "0") MaterialTheme.colors.background else
+                if (isSystemInDarkTheme()) Color.LightGray else
                     Color.LightGray.copy(alpha = 0.6f)
             ),
         contentAlignment = Alignment.CenterStart
     ) {
         Text(
-            color = if (precipitation == "0") MaterialTheme.colors.background else Color.Gray,
+            color = if (isSystemInDarkTheme()) Color.DarkGray else Color.Gray,
             fontSize = 18.sp,
             fontWeight = FontWeight.Bold,
             text = "${precipitation}%",
@@ -211,11 +215,13 @@ fun ProbabilityPrecipitation(precipitation: String){
 
 @Composable
 fun MinTemp(){
+    val colorTheme = colorResource(SharedPreference(LocalContext.current).getValueColor())
+
     Box(
         Modifier
             .height(40.dp)
             .width(40.dp)
-            .background(Color.Blue.copy(alpha = 0.6f)),
+            .background(colorTheme.copy(alpha = 0.6f)),
         contentAlignment = Alignment.Center
     ) {
         Text(
@@ -229,6 +235,7 @@ fun MinTemp(){
 
 @Composable
 fun MaxTemp(pos: Float, temp: String){
+    val colorTheme = colorResource(SharedPreference(LocalContext.current).getValueColor())
     Box(
         contentAlignment = Alignment.CenterEnd
     ) {
@@ -237,14 +244,14 @@ fun MaxTemp(pos: Float, temp: String){
                 modifier = Modifier
                     .height(40.dp)
                     .width(40.dp)
-                    .background(Color.Blue)
+                    .background(colorTheme)
             )
             Box(
                 modifier = Modifier
                     .clip(RoundedCornerShape(0.dp, 10.dp, 10.dp, 0.dp))
                     .height(40.dp)
                     .fillMaxWidth(pos)
-                    .background(Color.Blue)
+                    .background(colorTheme)
             )
         }
         Text(

@@ -3,6 +3,7 @@ package com.lab.weatherapp.screens.location
 import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
@@ -18,12 +19,14 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.lab.weatherapp.R
+import com.lab.weatherapp.sharedpreference.SharedPreference
 
 class LocationScreen {
     @Composable
@@ -54,7 +57,7 @@ class LocationScreen {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(50.dp)
+                    .height(60.dp)
                     .clickable { },
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -77,7 +80,7 @@ class LocationScreen {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(50.dp)
+                        .height(60.dp)
                         .clickable {
 
                         },
@@ -189,7 +192,7 @@ fun SearchLocation(stateTopBarLocation: MutableState<StateTopBarLocation>){
             colors = TextFieldDefaults.textFieldColors(
                 backgroundColor = Color.Transparent,
                 cursorColor = MaterialTheme.colors.onBackground.copy(alpha = 0.5f),
-                focusedIndicatorColor = Color.Blue
+                focusedIndicatorColor = colorResource(SharedPreference(LocalContext.current).getValueColor())
             )
         )
     }

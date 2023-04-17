@@ -1,5 +1,6 @@
 package com.lab.weatherapp.ui.theme
 
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.darkColors
@@ -45,7 +46,6 @@ fun WeatherAppTheme(darkTheme: Boolean = isSystemInDarkTheme(), content: @Compos
         LightColorPalette
     }
 
-
     MaterialTheme(
         colors = colors,
         typography = Typography,
@@ -53,3 +53,5 @@ fun WeatherAppTheme(darkTheme: Boolean = isSystemInDarkTheme(), content: @Compos
         content = content
     )
 }
+
+
