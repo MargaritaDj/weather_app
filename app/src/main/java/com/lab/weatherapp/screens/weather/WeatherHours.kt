@@ -73,6 +73,7 @@ fun WeatherHours() {
 @Composable
 fun GraphWeatherHours() {
     data class Temp(val temp: String, val pos: Float, val time: String)
+
     val colorTheme = colorResource(SharedPreference(LocalContext.current).getValueColor())
 
     //0.1f - 0.7f, start - 0.7 по убыванию
@@ -96,7 +97,7 @@ fun GraphWeatherHours() {
     ) {
         data.forEach {
             Column(
-               horizontalAlignment = Alignment.CenterHorizontally
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Box(
                     modifier = Modifier

@@ -3,6 +3,7 @@ package com.lab.weatherapp.sharedpreference
 import android.content.Context
 import android.content.SharedPreferences
 import com.lab.weatherapp.R
+import com.lab.weatherapp.app.App
 
 const val STATE_DATA = "STATE_DATA"
 const val STATE_THEME = "STATE_THEME"
