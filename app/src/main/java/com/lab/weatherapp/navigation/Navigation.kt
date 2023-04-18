@@ -1,26 +1,29 @@
 package com.lab.weatherapp.navigation
 
+import android.widget.Toast
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.vectorResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.lab.weatherapp.screens.location.SearchLocation
 import com.lab.weatherapp.screens.location.StateTopBarLocation
 import com.lab.weatherapp.sharedpreference.SharedPreference
+import javax.inject.Inject
 
 @Composable
 fun AppNavigation() {
@@ -58,13 +61,18 @@ fun AppNavigation() {
         bottomBar = {
             BottomNavigation(
                 backgroundColor = MaterialTheme.colors.background,
-                elevation = if(isSystemInDarkTheme()) { 0.dp } else 20.dp) {
+                elevation = if (isSystemInDarkTheme()) {
+                    0.dp
+                } else 20.dp
+            ) {
                 items.forEach {
                     BottomNavigationItem(selected = currentRoute == it.route,
                         icon = {
                             Icon(
                                 imageVector =
-                                if (it.route == Routes.Weather.route) ImageVector.vectorResource(it.icon as Int)
+                                if (it.route == Routes.Weather.route) ImageVector.vectorResource(
+                                    it.icon as Int
+                                )
                                 else it.icon as ImageVector,
                                 contentDescription = it.label,
                                 tint = if (currentRoute == it.route) colorTheme else Color.LightGray
@@ -103,7 +111,7 @@ fun TopBarLocations(stateTopBarLocation: MutableState<StateTopBarLocation>) {
     val colorTheme = colorResource(SharedPreference(LocalContext.current).getValueColor())
     val it = Routes.Location
 
-    when(stateTopBarLocation.value){
+    when (stateTopBarLocation.value) {
         StateTopBarLocation.CLOSED -> {
             TopAppBar(
                 title = {
@@ -123,7 +131,9 @@ fun TopBarLocations(stateTopBarLocation: MutableState<StateTopBarLocation>) {
                         Icon(Icons.Default.Add, "add", tint = colorTheme)
                     }
                 },
-                elevation = if(isSystemInDarkTheme()) { 0.dp } else 20.dp
+                elevation = if (isSystemInDarkTheme()) {
+                    0.dp
+                } else 20.dp
             )
         }
 
@@ -148,7 +158,9 @@ fun TopBarWeather() {
             )
         },
         backgroundColor = MaterialTheme.colors.background,
-        elevation = if(isSystemInDarkTheme()) { 0.dp } else 20.dp
+        elevation = if (isSystemInDarkTheme()) {
+            0.dp
+        } else 20.dp
     )
 }
 
@@ -167,6 +179,82 @@ fun TopBarSettings() {
             )
         },
         backgroundColor = MaterialTheme.colors.background,
-        elevation = if(isSystemInDarkTheme()) { 0.dp } else 20.dp
+        elevation = if (isSystemInDarkTheme()) {
+            0.dp
+        } else 20.dp
     )
+}
+
+@Composable
+fun SearchLocation(stateTopBarLocation: MutableState<StateTopBarLocation>) {
+    val stateText = remember { mutableStateOf("") }
+    val context = LocalContext.current
+
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(56.dp),
+        elevation = AppBarDefaults.TopAppBarElevation,
+        color = MaterialTheme.colors.background
+    ) {
+        TextField(
+            modifier = Modifier
+                .fillMaxWidth(),
+            value = stateText.value,
+            onValueChange = {
+                stateText.value = it
+            },
+
+            placeholder = {
+                Text(
+                    modifier = Modifier
+                        .alpha(ContentAlpha.medium),
+                    text = "Search",
+                    color = MaterialTheme.colors.onBackground
+                )
+            },
+
+            singleLine = true,
+            leadingIcon = {
+                IconButton(
+                    onClick = {
+                        stateTopBarLocation.value = StateTopBarLocation.CLOSED
+                    }
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.ArrowBack,
+                        contentDescription = "back",
+                        tint = MaterialTheme.colors.onBackground
+                    )
+
+                }
+            },
+
+            trailingIcon = {
+                IconButton(
+                    onClick = {
+                        if (stateText.value.isEmpty()) {
+                            Toast.makeText(context, "Error", Toast.LENGTH_LONG).show()
+                        } else {
+                            Toast.makeText(context, stateText.value, Toast.LENGTH_LONG).show()
+                            stateText.value = ""
+                        }
+                    }
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Search,
+                        contentDescription = "search",
+                        tint = MaterialTheme.colors.onBackground
+                    )
+                }
+            },
+
+            colors = TextFieldDefaults.textFieldColors(
+                backgroundColor = Color.Transparent,
+                cursorColor = MaterialTheme.colors.onBackground.copy(alpha = 0.5f),
+                focusedIndicatorColor = colorResource(SharedPreference(LocalContext.current)
+                    .getValueColor())
+            )
+        )
+    }
 }

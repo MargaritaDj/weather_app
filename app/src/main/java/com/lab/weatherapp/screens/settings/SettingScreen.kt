@@ -27,15 +27,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.lab.weatherapp.R
 import com.lab.weatherapp.sharedpreference.SharedPreference
+import javax.inject.Inject
 
-class SettingScreen {
-
+class SettingScreen{
     @Composable
     fun Settings() {
-        val context = LocalContext.current
-        val stateData = rememberSaveable { mutableStateOf(SharedPreference(context).getValueData()) }
-        val stateTheme = rememberSaveable { mutableStateOf(SharedPreference(context).getValueTheme()) }
-        val stateSwitch = rememberSaveable { mutableStateOf(SharedPreference(context).getValueSwift()) }
+        val sharedPreference = SharedPreference(LocalContext.current)
+        val stateData = rememberSaveable { mutableStateOf(sharedPreference.getValueData()) }
+        val stateTheme = rememberSaveable { mutableStateOf(sharedPreference.getValueTheme()) }
+        val stateSwitch = rememberSaveable { mutableStateOf(sharedPreference.getValueSwift()) }
 
         SaveSettings(stateData, stateTheme, stateSwitch)
 
@@ -197,10 +197,11 @@ class SettingScreen {
     @Composable
     fun SaveSettings(stateData: MutableState<String>, stateTheme: MutableState<String>,
                      stateSwift:MutableState<Boolean>){
-        val context = LocalContext.current
-        SharedPreference(context).saveValueData(stateData.value)
-        SharedPreference(context).saveValueTheme(stateTheme.value)
-        SharedPreference(context).saveValueSwift(stateSwift.value)
+        val sharedPreference = SharedPreference(LocalContext.current)
+
+        sharedPreference.saveValueData(stateData.value)
+        sharedPreference.saveValueTheme(stateTheme.value)
+        sharedPreference.saveValueSwift(stateSwift.value)
     }
 }
 

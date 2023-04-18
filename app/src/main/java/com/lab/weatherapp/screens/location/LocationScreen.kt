@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.lab.weatherapp.R
 import com.lab.weatherapp.sharedpreference.SharedPreference
+import javax.inject.Inject
 
 class LocationScreen {
     @Composable
@@ -122,78 +123,5 @@ class LocationScreen {
                 }
             }
         }
-    }
-}
-
-@Composable
-fun SearchLocation(stateTopBarLocation: MutableState<StateTopBarLocation>){
-    val stateText = remember { mutableStateOf("") }
-    val context = LocalContext.current
-
-    Surface(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(56.dp),
-        elevation = AppBarDefaults.TopAppBarElevation,
-        color = MaterialTheme.colors.background
-    ) {
-        TextField(
-            modifier = Modifier
-                .fillMaxWidth(),
-            value = stateText.value,
-            onValueChange = {
-                stateText.value = it
-            },
-
-            placeholder = {
-                Text(
-                    modifier = Modifier
-                        .alpha(ContentAlpha.medium),
-                    text = "Search",
-                    color = MaterialTheme.colors.onBackground
-                )
-            },
-
-            singleLine = true,
-            leadingIcon = {
-                IconButton(
-                    onClick = {
-                        stateTopBarLocation.value = StateTopBarLocation.CLOSED
-                    }
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.ArrowBack,
-                        contentDescription = "back",
-                        tint = MaterialTheme.colors.onBackground
-                    )
-
-                }
-            },
-
-            trailingIcon = {
-                IconButton(
-                    onClick = {
-                        if(stateText.value.isEmpty()){
-                            Toast.makeText(context, "Error", Toast.LENGTH_LONG).show()
-                        } else {
-                            Toast.makeText(context, stateText.value, Toast.LENGTH_LONG).show()
-                            stateText.value = ""
-                        }
-                    }
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Search,
-                        contentDescription = "search",
-                        tint = MaterialTheme.colors.onBackground
-                    )
-                }
-            },
-
-            colors = TextFieldDefaults.textFieldColors(
-                backgroundColor = Color.Transparent,
-                cursorColor = MaterialTheme.colors.onBackground.copy(alpha = 0.5f),
-                focusedIndicatorColor = colorResource(SharedPreference(LocalContext.current).getValueColor())
-            )
-        )
     }
 }

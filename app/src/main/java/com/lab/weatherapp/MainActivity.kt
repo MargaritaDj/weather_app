@@ -8,15 +8,13 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
 import androidx.compose.ui.Modifier
 import com.lab.weatherapp.navigation.AppNavigation
-import com.lab.weatherapp.screens.settings.changeTheme
-import com.lab.weatherapp.sharedpreference.SharedPreference
 import com.lab.weatherapp.ui.theme.WeatherAppTheme
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        changeTheme(SharedPreference(this).getValueTheme())
-        delegate.applyDayNight()
         supportActionBar?.hide()
         setContent {
             WeatherAppTheme {
