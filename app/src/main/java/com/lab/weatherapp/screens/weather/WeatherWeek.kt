@@ -30,19 +30,26 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.lab.weatherapp.R
+import com.lab.weatherapp.model.Condition
+import com.lab.weatherapp.model.Description
+import com.lab.weatherapp.model.Forecast
+import com.lab.weatherapp.model.Hour
 import com.lab.weatherapp.sharedpreference.SharedPreference
+import kotlin.math.roundToInt
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun WeatherWeek() {
+fun WeatherWeek(weatherState: WeatherState) {
     val currentPositionList = remember { mutableStateOf(0) }
+
+    val tempList = parsingTimeDays(weatherState.weatherInfo!!.forecast)
 
     val lazyListState: LazyListState = rememberLazyListState()
     val snappingLayout = remember(lazyListState) { SnapLayoutInfoProvider(lazyListState) }
     val layoutInfo = remember { derivedStateOf { lazyListState.layoutInfo } }
     val itemsWeatherNow = listOf<@Composable () -> Unit>(
-        { GraphWeatherWeek() },
-        { InfoWeatherWeek() })
+        { GraphWeatherWeek(tempList) },
+        { InfoWeatherWeek(tempList) })
 
     ChangeMarkerCurrentPosition(currentPositionList, lazyListState)
 
@@ -72,24 +79,7 @@ fun WeatherWeek() {
 }
 
 @Composable
-fun GraphWeatherWeek() {
-    data class TempW(
-        val temp: String, val pos: Float, val osad: String,
-        val day: String, val date: String
-    )
-
-    //0.1f - 0.8f, start - 0.8 по убыванию
-    val data = listOf(
-        TempW("-2°", 0.4f, "30", "TUE", "9"),
-        TempW("4°", 0.6f, "0", "WED", "10"),
-        TempW("5°", 0.7f, "0", "THU", "11"),
-        TempW("-10°", 0.2f, "40", "FRI", "12"),
-        TempW("-3°", 0.3f, "70", "SAT", "13"),
-        TempW("0°", 0.5f, "0", "SUN", "14"),
-        TempW("0°", 0.5f, "25", "MON", "15"),
-        TempW("6°", 0.8f, "25", "TUE", "16")
-    )
-
+fun GraphWeatherWeek(data: MutableList<TempDay>) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -100,10 +90,10 @@ fun GraphWeatherWeek() {
         data.forEach {
             Row {
                 ProbabilityPrecipitation(it.osad)
-                IconWeather(R.drawable.partly_cloudy)
-                Date(it.day, it.date)
-                MinTemp()
-                MaxTemp(it.pos, it.temp)
+                IconWeather(Description.getIconFromDescription(it.isDay, it.con.text))
+                Date(it.date)
+                MinTemp(it)
+                MaxTemp(it)
             }
 
             Spacer(modifier = Modifier.height(5.dp))
@@ -112,25 +102,23 @@ fun GraphWeatherWeek() {
 }
 
 @Composable
-fun Date(day: String, date: String) {
+fun Date(date: String) {
     Box(
         Modifier
             .height(40.dp)
             .width(70.dp),
         contentAlignment = Alignment.Center
     ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
+        Row {
             Text(
                 color = MaterialTheme.colors.onBackground,
-                fontSize = 14.sp,
-                text = day
+                fontSize = 16.sp,
+                text = "${date.substring(3)}."
             )
             Text(
-                color = Color.Gray.copy(alpha = 0.8f),
-                fontSize = 12.sp,
-                text = date
+                color = MaterialTheme.colors.onBackground,
+                fontSize = 16.sp,
+                text = date.substringBefore("-")
             )
         }
     }
@@ -147,27 +135,11 @@ fun IconWeather(idIcon: Int) {
 }
 
 @Composable
-fun InfoWeatherWeek() {
-    data class TempW(
-        val temp: String, val pos: Float, val osad: String,
-        val day: String, val date: String
-    )
-
-    val data = listOf(
-        TempW("-2°", 0.4f, "30", "TUE", "9"),
-        TempW("4°", 0.6f, "0", "WED", "10"),
-        TempW("5°", 0.7f, "0", "THU", "11"),
-        TempW("-10°", 0.2f, "40", "FRI", "12"),
-        TempW("-3°", 0.3f, "70", "SAT", "13"),
-        TempW("0°", 0.5f, "0", "SUN", "14"),
-        TempW("0°", 0.5f, "25", "MON", "15"),
-        TempW("6°", 0.8f, "25", "TUE", "16")
-    )
-
+fun InfoWeatherWeek(data: MutableList<TempDay>) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(start = 20.dp, top = 10.dp, bottom = 10.dp),
+            .padding(start = 10.dp, top = 10.dp, bottom = 10.dp),
         horizontalAlignment = Alignment.Start
     )
     {
@@ -176,12 +148,12 @@ fun InfoWeatherWeek() {
                 modifier = Modifier.height(40.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Date(it.day, it.date)
-                IconWeather(R.drawable.partly_cloudy)
+                Date(it.date)
+                IconWeather(Description.getIconFromDescription(it.isDay, it.con.text))
                 Text(
                     color = MaterialTheme.colors.onBackground,
                     fontSize = 14.sp,
-                    text = "Partly cloudy. 7m/s winds.",
+                    text = "${it.con.text}. ${it.wind} km/h winds.",
                     modifier = Modifier.padding(start = 10.dp)
                 )
             }
@@ -191,7 +163,7 @@ fun InfoWeatherWeek() {
 }
 
 @Composable
-fun ProbabilityPrecipitation(precipitation: String){
+fun ProbabilityPrecipitation(precipitation: Int) {
     Box(
         modifier = Modifier
             .height(40.dp)
@@ -214,7 +186,7 @@ fun ProbabilityPrecipitation(precipitation: String){
 }
 
 @Composable
-fun MinTemp(){
+fun MinTemp(item: TempDay) {
     val colorTheme = colorResource(SharedPreference(LocalContext.current).getValueColor())
 
     Box(
@@ -228,13 +200,17 @@ fun MinTemp(){
             color = Color.White,
             fontSize = 18.sp,
             fontWeight = FontWeight.Bold,
-            text = "-15°"
+            text = if (SharedPreference(LocalContext.current).getValueData() == "Celsius") {
+                "${item.tempMinC}°"
+            } else {
+                "${item.tempMinF}°"
+            }
         )
     }
 }
 
 @Composable
-fun MaxTemp(pos: Float, temp: String){
+fun MaxTemp(item: TempDay) {
     val colorTheme = colorResource(SharedPreference(LocalContext.current).getValueColor())
     Box(
         contentAlignment = Alignment.CenterEnd
@@ -250,7 +226,7 @@ fun MaxTemp(pos: Float, temp: String){
                 modifier = Modifier
                     .clip(RoundedCornerShape(0.dp, 10.dp, 10.dp, 0.dp))
                     .height(40.dp)
-                    .fillMaxWidth(pos)
+                    .fillMaxWidth(item.pos)
                     .background(colorTheme)
             )
         }
@@ -258,9 +234,60 @@ fun MaxTemp(pos: Float, temp: String){
             color = Color.White,
             fontSize = 18.sp,
             fontWeight = FontWeight.Bold,
-            text = temp,
+            text = if (SharedPreference(LocalContext.current).getValueData() == "Celsius") {
+                "${item.tempMaxC}°"
+            } else {
+                "${item.tempMaxF}°"
+            },
             modifier = Modifier.padding(end = 5.dp)
         )
 
     }
 }
+
+fun parsingTimeDays(forecast: Forecast): MutableList<TempDay> {
+    val tempMax: MutableList<Int> = mutableListOf()
+    for (i in 0..7) {
+        tempMax.add(forecast.forecastday[i].day.maxtemp_c.roundToInt())
+    }
+    val tempMaxSet: MutableSet<Int> = tempMax.sortedDescending().toMutableSet()
+    val mapTempPos: MutableMap<Int, Float> = mutableMapOf()
+
+    tempMaxSet.forEach {
+        mapTempPos[it] = 0.8f - tempMaxSet.indexOf(it) * 0.1f
+    }
+
+    val tempList: MutableList<TempDay> = mutableListOf()
+
+    for (i in 0..7) {
+        val osad =
+            if (forecast.forecastday[i].day.daily_chance_of_rain != 0) {
+                forecast.forecastday[i].day.daily_chance_of_rain
+            } else {
+                forecast.forecastday[i].day.daily_chance_of_snow
+            }
+
+        tempList.add(
+            TempDay(
+                forecast.forecastday[i].day.mintemp_c.roundToInt(),
+                forecast.forecastday[i].day.mintemp_f.roundToInt(),
+                forecast.forecastday[i].day.maxtemp_c.roundToInt(),
+                forecast.forecastday[i].day.maxtemp_f.roundToInt(),
+                mapTempPos[forecast.forecastday[i].day.maxtemp_c.roundToInt()]!!,
+                forecast.forecastday[i].date.substring(5),
+                forecast.forecastday[i].day.condition,
+                1,
+                forecast.forecastday[i].day.maxwind_kph.roundToInt(),
+                osad
+            )
+        )
+    }
+
+    return tempList
+}
+
+data class TempDay(
+    val tempMinC: Int, val tempMinF: Int, val tempMaxC: Int, val tempMaxF: Int,
+    val pos: Float, val date: String, val con: Condition, val isDay: Int,
+    val wind: Int, val osad: Int
+)

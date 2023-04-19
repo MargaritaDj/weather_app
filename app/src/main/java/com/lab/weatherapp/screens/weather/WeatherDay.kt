@@ -26,19 +26,22 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.lab.weatherapp.R
+import com.lab.weatherapp.model.Description
 import com.lab.weatherapp.sharedpreference.SharedPreference
+import kotlin.math.roundToInt
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun WeatherDay() {
+fun WeatherDay(weatherState: WeatherState) {
     val currentPositionList = remember { mutableStateOf(0) }
 
     val lazyListState: LazyListState = rememberLazyListState()
     val snappingLayout = remember(lazyListState) { SnapLayoutInfoProvider(lazyListState) }
     val layoutInfo = remember { derivedStateOf { lazyListState.layoutInfo } }
     val itemsWeatherNow = listOf<@Composable () -> Unit>(
-        { InfoAboutTemp() },
-        { InfoAboutDay() })
+        { InfoAboutTemp(weatherState) },
+        { InfoAboutDay(weatherState) })
 
     ChangeMarkerCurrentPosition(currentPositionList, lazyListState)
 
@@ -46,7 +49,7 @@ fun WeatherDay() {
         modifier = Modifier
             .fillMaxSize()
     ) {
-        InfoAboutCard("Right now", "Sunny")
+        InfoAboutCard("Right now", weatherState.weatherInfo!!.current.condition.text)
         LazyRow(
             state = lazyListState,
             flingBehavior = rememberSnapFlingBehavior(snappingLayout)
@@ -92,7 +95,10 @@ fun InfoAboutCard(name: String, info: String) {
 }
 
 @Composable
-fun InfoAboutTemp() {
+fun InfoAboutTemp(weatherState: WeatherState) {
+    val icon = Description.getIconFromDescription(
+        weatherState.weatherInfo!!.current.is_day,
+        weatherState.weatherInfo.current.condition.text)
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -100,7 +106,7 @@ fun InfoAboutTemp() {
         verticalAlignment = Alignment.CenterVertically
     ) {
         Image(
-            ImageVector.vectorResource(com.lab.weatherapp.R.drawable.sunny),
+            ImageVector.vectorResource(icon),
             null,
             modifier = Modifier
                 .padding(5.dp)
@@ -117,7 +123,11 @@ fun InfoAboutTemp() {
                 fontSize = 70.sp,
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.End,
-                text = "-10°"
+                text = if(SharedPreference(LocalContext.current).getValueData() == "Celsius"){
+                    "${weatherState.weatherInfo.current.temp_c.roundToInt()}°"
+                } else {
+                    "${weatherState.weatherInfo.current.temp_f.roundToInt()}°"
+                }
             )
 
             Text(
@@ -126,7 +136,11 @@ fun InfoAboutTemp() {
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center,
-                text = "Feels like -15°"
+                text = if(SharedPreference(LocalContext.current).getValueData() == "Celsius"){
+                    "Feels like ${weatherState.weatherInfo.current.feelslike_c.roundToInt()}°"
+                } else {
+                    "Feels like ${weatherState.weatherInfo.current.feelslike_f.roundToInt()}°"
+                }
             )
         }
     }
@@ -173,7 +187,7 @@ fun CurrentPositionItemList(currentPosition: Int, totalPoints: Int) {
 }
 
 @Composable
-fun InfoAboutDay() {
+fun InfoAboutDay(weatherState: WeatherState) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -185,12 +199,12 @@ fun InfoAboutDay() {
                 Box(
                     modifier = Modifier
                         .clip(CircleShape)
-                        .background(colorResource(com.lab.weatherapp.R.color.purple_700))
+                        .background(colorResource(R.color.purple_700))
                         .size(30.dp),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
-                        ImageVector.vectorResource(com.lab.weatherapp.R.drawable.arrow_right_up_icon),
+                        ImageVector.vectorResource(R.drawable.arrow_right_up_icon),
                         null,
                         tint = Color.White,
                         modifier = Modifier
@@ -202,14 +216,15 @@ fun InfoAboutDay() {
                         .padding(start = 10.dp),
                     color = MaterialTheme.colors.onBackground,
                     fontSize = 18.sp,
-                    text = "4-9m/s winds from the southwest"
+                    text = "${weatherState.weatherInfo!!.current.wind_kph} km/h winds " +
+                            "from the ${weatherState.weatherInfo.current.wind_dir}"
                 )
             }
 
             Row {
 
                 Icon(
-                    ImageVector.vectorResource(com.lab.weatherapp.R.drawable.drop_water), null,
+                    ImageVector.vectorResource(R.drawable.drop_water), null,
                     tint = Color.LightGray, modifier = Modifier.size(30.dp)
                 )
 
@@ -218,16 +233,15 @@ fun InfoAboutDay() {
                         .padding(start = 10.dp),
                     color = MaterialTheme.colors.onBackground,
                     fontSize = 18.sp,
-                    text = "Humidity 47%"
+                    text = "Humidity ${weatherState.weatherInfo!!.current.humidity}%"
                 )
             }
 
             Row {
-
                 Icon(
-                    ImageVector.vectorResource(com.lab.weatherapp.R.drawable.sunset),
+                    ImageVector.vectorResource(R.drawable.sunset),
                     null,
-                    tint = colorResource(com.lab.weatherapp.R.color.yellow),
+                    tint = colorResource(R.color.yellow),
                     modifier = Modifier.size(30.dp)
                 )
 
@@ -236,7 +250,8 @@ fun InfoAboutDay() {
                         .padding(start = 10.dp),
                     color = MaterialTheme.colors.onBackground,
                     fontSize = 18.sp,
-                    text = "Sunrise 6:20 -> Sunset 19:33\n13.2 hours of daylight"
+                    text = "Sunrise ${weatherState.weatherInfo!!.forecast.forecastday[0].astro.sunrise} " +
+                            "->\n Sunset ${weatherState.weatherInfo.forecast.forecastday[0].astro.sunset}"
                 )
             }
         }

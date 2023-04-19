@@ -30,21 +30,27 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.lab.weatherapp.R
+import com.lab.weatherapp.model.Condition
+import com.lab.weatherapp.model.Day
+import com.lab.weatherapp.model.Description
+import com.lab.weatherapp.model.Hour
 import com.lab.weatherapp.sharedpreference.SharedPreference
+import kotlin.math.roundToInt
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun WeatherHours() {
+fun WeatherHours(weatherState: WeatherState) {
     val currentPositionList = remember { mutableStateOf(0) }
+
+    val list: MutableList<Hour> = mutableListOf()
+    list.addAll(weatherState.weatherInfo!!.forecast.forecastday[0].hour)
+    list.addAll(weatherState.weatherInfo.forecast.forecastday[1].hour)
+    val temp = parsingTimeHours(weatherState.weatherInfo.location.localtime, list)
 
     val lazyListState: LazyListState = rememberLazyListState()
     val snappingLayout = remember(lazyListState) { SnapLayoutInfoProvider(lazyListState) }
     val layoutInfo = remember { derivedStateOf { lazyListState.layoutInfo } }
-    val itemsWeatherNow = listOf<@Composable () -> Unit>(
-        { GraphWeatherHours() },
-        { GraphWeatherHours() })
-
-    ChangeMarkerCurrentPosition(currentPositionList, lazyListState)
+    val itemsWeatherNow = listOf<@Composable () -> Unit> { GraphWeatherHours(temp) }
 
     Column(
         modifier = Modifier
@@ -66,26 +72,12 @@ fun WeatherHours() {
                 }
             }
         }
-        CurrentPositionItemList(currentPositionList.value, layoutInfo.value.totalItemsCount)
     }
 }
 
 @Composable
-fun GraphWeatherHours() {
-    data class Temp(val temp: String, val pos: Float, val time: String)
-
+fun GraphWeatherHours(data: List<Temp>) {
     val colorTheme = colorResource(SharedPreference(LocalContext.current).getValueColor())
-
-    //0.1f - 0.7f, start - 0.7 по убыванию
-    val data = listOf(
-        Temp("-2°", 0.4f, "2am"),
-        Temp("4°", 0.6f, "3am"),
-        Temp("5°", 0.7f, "4am"),
-        Temp("-10°", 0.2f, "5am"),
-        Temp("-3°", 0.3f, "6am"),
-        Temp("0°", 0.5f, "7am"),
-        Temp("0°", 0.5f, "7am")
-    )
 
     Row(
         modifier = Modifier
@@ -111,7 +103,11 @@ fun GraphWeatherHours() {
                         color = Color.White,
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
-                        text = it.temp
+                        text = if(SharedPreference(LocalContext.current).getValueData() == "Celsius"){
+                            "${it.tempC}°"
+                        } else {
+                        "${it.tempF}°"
+                    }
                     )
                 }
 
@@ -124,7 +120,9 @@ fun GraphWeatherHours() {
                 )
 
                 Image(
-                    ImageVector.vectorResource(R.drawable.rain),
+                    ImageVector.vectorResource(
+                        Description.getIconFromDescription(it.isDay, it.con.text)
+                    ),
                     null,
                     modifier = Modifier
                         .size(40.dp)
@@ -134,3 +132,47 @@ fun GraphWeatherHours() {
         }
     }
 }
+
+fun parsingTimeHours(currentDate: String, hours: List<Hour>): MutableList<Temp> {
+    var indexHour = 0
+    var time: String
+    val currentTime: String = currentDate.substring(11)
+    hours.forEach {
+        time = it.time.substring(11)
+        if(currentDate.substringBefore(" ") == it.time.substringBefore(" ") &&
+            currentTime.substringBefore(":") == time.substringBefore(":")){
+            indexHour = hours.indexOf(it)
+        }
+    }
+
+    val list: MutableList<Hour> = mutableListOf()
+    val temp: MutableList<Int> = mutableListOf()
+    for(i in indexHour..indexHour+6){
+        list.add(hours[i])
+        temp.add(hours[i].temp_c.roundToInt())
+    }
+
+    val tempSet: MutableSet<Int> = temp.sortedDescending().toMutableSet()
+    val mapTempPos: MutableMap<Int, Float> = mutableMapOf()
+
+    tempSet.forEach{
+        mapTempPos[it] = 0.7f - tempSet.indexOf(it) * 0.1f
+    }
+
+    val tempList: MutableList<Temp> = mutableListOf()
+    list.forEach {
+        tempList.add(
+            Temp(it.temp_c.roundToInt(),
+                 it.temp_f.roundToInt(),
+                mapTempPos[it.temp_c.roundToInt()]!!,
+                it.time.substring(11),
+                it.condition,
+                it.is_day)
+        )
+    }
+
+    return tempList
+}
+
+data class Temp(val tempC: Int, val tempF: Int, val pos: Float, val time: String, val con: Condition,
+val isDay: Int)

@@ -8,7 +8,15 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
     <color name="sky_day">#91AFC0</color>
-    <color name="yellow">#F4A900</color>
+
+    <color name="purple">#74008F</color>
+    <color name="dark_blue">#5024B5</color>
+    <color name="medium_blue">#0407FA</color>
     <color name="blue">#42aaff</color>
     <color name="green">#3BC43B</color>
+    <color name="yellow">#F4A900</color>
+    <color name="light_yellow">#EAD625</color>
+    <color name="orange">#FA6520</color>
+    <color name="red">#FF0404</color>
+
 </resources>
