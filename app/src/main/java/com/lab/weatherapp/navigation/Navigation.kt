@@ -22,11 +22,12 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.lab.weatherapp.screens.location.StateTopBarLocation
+import com.lab.weatherapp.screens.weather.WeatherState
 import com.lab.weatherapp.sharedpreference.SharedPreference
 import javax.inject.Inject
 
 @Composable
-fun AppNavigation() {
+fun AppNavigation(weatherState: WeatherState) {
     val navController = rememberNavController()
     val stateTopBarLocation = remember { mutableStateOf(StateTopBarLocation.CLOSED) }
     val navBackStackEntry by navController.currentBackStackEntryAsState()
@@ -44,7 +45,7 @@ fun AppNavigation() {
             items.forEach {
                 if (currentRoute == it.route) {
                     when (it.route) {
-                        Routes.Weather.route -> TopBarWeather()
+                        Routes.Weather.route -> TopBarWeather(weatherState)
                         Routes.Location.route -> TopBarLocations(stateTopBarLocation)
                         Routes.Settings.route -> TopBarSettings()
                     }
@@ -54,7 +55,7 @@ fun AppNavigation() {
 
         content = { padding ->
             Box(modifier = Modifier.padding(padding)) {
-                AppNavHost(navController = navController)
+                AppNavHost(navController = navController, weatherState)
             }
         },
 
@@ -144,13 +145,19 @@ fun TopBarLocations(stateTopBarLocation: MutableState<StateTopBarLocation>) {
 }
 
 @Composable
-fun TopBarWeather() {
-    val colorTheme = colorResource(SharedPreference(LocalContext.current).getValueColor())
+fun TopBarWeather(weatherState: WeatherState) {
+    val sharedPref = SharedPreference(LocalContext.current)
+    val colorTheme = colorResource(sharedPref.getValueColor())
+    val weather = weatherState.weatherInfo
 
     TopAppBar(
         title = {
             Text(
-                text = "г. Санкт-Петербург",
+                text = if (weather != null) {
+                    "${weather.location.name}, ${weather.location.country}"
+                } else {
+                    sharedPref.getValueLast()
+                },
                 color = colorTheme,
                 fontSize = 20.sp,
                 maxLines = 1,
@@ -252,8 +259,10 @@ fun SearchLocation(stateTopBarLocation: MutableState<StateTopBarLocation>) {
             colors = TextFieldDefaults.textFieldColors(
                 backgroundColor = Color.Transparent,
                 cursorColor = MaterialTheme.colors.onBackground.copy(alpha = 0.5f),
-                focusedIndicatorColor = colorResource(SharedPreference(LocalContext.current)
-                    .getValueColor())
+                focusedIndicatorColor = colorResource(
+                    SharedPreference(LocalContext.current)
+                        .getValueColor()
+                )
             )
         )
     }
