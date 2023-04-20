@@ -7,14 +7,11 @@ import com.lab.weatherapp.app.App
 
 const val STATE_DATA = "STATE_DATA"
 const val STATE_THEME = "STATE_THEME"
-const val STATE_SWIFT = "STATE_SWIFT"
 const val COLOR_THEME = "COLOR_THEME"
-const val CURRENT_LOCATION = "CURRENT_LOCATION"
 const val LAST_LOCATION = "LAST_LOCATION"
 
 const val DATA_DEFAULT = "Celsius"
 const val THEME_DEFAULT = "Light"
-const val SWIFT_DEFAULT = true
 const val COLOR_DEFAULT = R.color.blue
 const val LAST_LOCATION_DEFAULT = "New York"
 
@@ -30,16 +27,8 @@ class SharedPreference(context: Context) {
         sharedPreferences?.edit()?.putString(STATE_THEME, value)?.apply()
     }
 
-    fun saveValueSwift(value: Boolean){
-        sharedPreferences?.edit()?.putBoolean(STATE_SWIFT, value)?.apply()
-    }
-
     fun saveValueColor(value: Int){
         sharedPreferences?.edit()?.putInt(COLOR_THEME, value)?.apply()
-    }
-
-    fun saveValueCurrent(value: String){
-        sharedPreferences?.edit()?.putString(CURRENT_LOCATION, value)?.apply()
     }
 
     fun saveValueLast(value: String){
@@ -54,16 +43,8 @@ class SharedPreference(context: Context) {
         return sharedPreferences?.getString(STATE_THEME, THEME_DEFAULT)!!
     }
 
-    fun getValueSwift(): Boolean{
-        return sharedPreferences?.getBoolean(STATE_SWIFT, SWIFT_DEFAULT)!!
-    }
-
     fun getValueColor(): Int{
         return sharedPreferences?.getInt(COLOR_THEME, COLOR_DEFAULT)!!
-    }
-
-    fun getValueCurrent(): String{
-        return sharedPreferences?.getString(CURRENT_LOCATION, "")!!
     }
 
     fun getValueLast(): String{
