@@ -1,5 +1,9 @@
 package com.lab.weatherapp.screens.location
 
+import android.Manifest
+import android.content.Context
+import android.content.pm.PackageManager
+import android.location.LocationManager
 import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -25,31 +29,24 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
+import com.lab.weatherapp.MainActivity
 import com.lab.weatherapp.R
+import com.lab.weatherapp.model.LocationName
+import com.lab.weatherapp.navigation.Routes
+import com.lab.weatherapp.screens.weather.WeatherState
 import com.lab.weatherapp.sharedpreference.SharedPreference
+import com.lab.weatherapp.viewmodel.WeatherViewModel
 import javax.inject.Inject
 
 class LocationScreen {
     @Composable
-    fun Location() {
-        val locations = remember {
-            mutableStateListOf(
-                "Chicago, Illinois",
-                "New York, New York",
-                "Омск, Омская обл., Россия",
-                "Рим, Италия",
-                "Краснодар, Краснодарский край, Краснодарский краааай",
-                "Chicago, Illinois",
-                "New York, New York",
-                "Омск, Омская обл., Россия",
-                "Рим, Италия",
-                "Chicago, Illinois",
-                "New York, New York",
-                "Омск, Омская обл., Россия",
-                "Рим, Италия",
-            )
-        }
-
+    fun Location(viewModel: WeatherViewModel, allLocations: List<LocationName>, navController: NavController) {
+        val last = SharedPreference(LocalContext.current).getValueLast()
+        val context = LocalContext.current
+        
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -59,7 +56,34 @@ class LocationScreen {
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(60.dp)
-                    .clickable { },
+                    .clickable {
+                        if (ContextCompat.checkSelfPermission(
+                                context, Manifest.permission.ACCESS_FINE_LOCATION
+                            ) != PackageManager.PERMISSION_GRANTED)
+                        {
+                            Toast.makeText(
+                                context,
+                                "You did not give permission for this function to be executed.\n" +
+                                        "You can change in the system settings.",
+                                Toast.LENGTH_LONG
+                            ).show()
+                        } else {
+                            val locationManager =
+                                context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+                            if (locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER) ||
+                                locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
+                            ) {
+                                navController.navigate(Routes.Weather.route)
+                                viewModel.getWeatherInfoByGPS(last, context)
+                            } else {
+                                Toast.makeText(
+                                    context,
+                                    "Turn on the GPS and try again",
+                                    Toast.LENGTH_LONG
+                                ).show()
+                            }
+                        }
+                    },
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Icon(
@@ -77,13 +101,14 @@ class LocationScreen {
                 )
             }
 
-            locations.forEach {
+            allLocations.forEach {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(60.dp)
                         .clickable {
-
+                            navController.navigate(Routes.Weather.route)
+                            viewModel.getWeatherInfoByLocation(it.name)
                         },
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -97,7 +122,7 @@ class LocationScreen {
                         color = MaterialTheme.colors.onBackground,
                         fontSize = 16.sp,
                         maxLines = 1,
-                        text = it,
+                        text = it.name,
                         modifier = Modifier.weight(85f).padding(start = 5.dp),
                         overflow = TextOverflow.Ellipsis,
                         textAlign = TextAlign.Start
@@ -110,7 +135,7 @@ class LocationScreen {
                         contentAlignment = Alignment.CenterEnd
                     ) {
                         IconButton(onClick = {
-                            locations.remove(it)
+                            viewModel.deleteLocation(it.name)
                         }) {
                             Icon(
                                 Icons.Default.Close,

@@ -35,9 +35,8 @@ class SettingScreen{
         val sharedPreference = SharedPreference(LocalContext.current)
         val stateData = rememberSaveable { mutableStateOf(sharedPreference.getValueData()) }
         val stateTheme = rememberSaveable { mutableStateOf(sharedPreference.getValueTheme()) }
-        val stateSwitch = rememberSaveable { mutableStateOf(sharedPreference.getValueSwift()) }
 
-        SaveSettings(stateData, stateTheme, stateSwitch)
+        SaveSettings(stateData, stateTheme)
 
 
         Column(
@@ -53,12 +52,6 @@ class SettingScreen{
             ItemListData(
                 ImageVector.vectorResource(R.drawable.international), colorResource(R.color.green),
                 "Celsius", stateData
-            )
-
-            Title("CUSTOM UNITS")
-            SwitchClock(
-                ImageVector.vectorResource(R.drawable.clock), colorResource(R.color.yellow),
-                "24-Hour Time", stateSwitch
             )
 
             Title("THEME")
@@ -153,55 +146,10 @@ class SettingScreen{
     }
 
     @Composable
-    fun SwitchClock(icon: ImageVector, color: Color, name: String, state: MutableState<Boolean>) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(60.dp)
-                .clickable {
-                    state.value = !state.value
-                },
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                icon, null,
-                tint = color,
-                modifier = Modifier.size(40.dp).padding(start = 20.dp)
-            )
-
-            Text(
-                color = MaterialTheme.colors.onBackground,
-                fontSize = 16.sp,
-                maxLines = 1,
-                text = name,
-                modifier = Modifier.weight(85f).padding(start = 20.dp),
-                textAlign = TextAlign.Start
-            )
-
-            Switch(
-                checked = state.value,
-                onCheckedChange = {
-                    state.value = !state.value
-                },
-                modifier = Modifier.weight(15f).padding(end = 20.dp),
-                colors = SwitchDefaults.colors(
-                    checkedThumbColor = colorResource(R.color.blue),
-                    checkedTrackColor = colorResource(R.color.sky_day),
-                    uncheckedThumbColor = Color.Gray,
-                    uncheckedTrackColor = Color.LightGray
-                )
-            )
-        }
-    }
-
-    @Composable
-    fun SaveSettings(stateData: MutableState<String>, stateTheme: MutableState<String>,
-                     stateSwift:MutableState<Boolean>){
+    fun SaveSettings(stateData: MutableState<String>, stateTheme: MutableState<String>){
         val sharedPreference = SharedPreference(LocalContext.current)
-
         sharedPreference.saveValueData(stateData.value)
         sharedPreference.saveValueTheme(stateTheme.value)
-        sharedPreference.saveValueSwift(stateSwift.value)
     }
 }
 

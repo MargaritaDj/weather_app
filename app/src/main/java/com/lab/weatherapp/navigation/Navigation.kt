@@ -1,5 +1,6 @@
 package com.lab.weatherapp.navigation
 
+import android.content.Context
 import android.widget.Toast
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
@@ -19,15 +20,21 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.lab.weatherapp.model.LocationName
 import com.lab.weatherapp.screens.location.StateTopBarLocation
 import com.lab.weatherapp.screens.weather.WeatherState
 import com.lab.weatherapp.sharedpreference.SharedPreference
+import com.lab.weatherapp.viewmodel.WeatherViewModel
 import javax.inject.Inject
 
 @Composable
-fun AppNavigation(weatherState: WeatherState) {
+fun AppNavigation(weatherState: WeatherState,
+                  allLocations: List<LocationName>,
+                  viewModel: WeatherViewModel) {
     val navController = rememberNavController()
     val stateTopBarLocation = remember { mutableStateOf(StateTopBarLocation.CLOSED) }
     val navBackStackEntry by navController.currentBackStackEntryAsState()
@@ -45,8 +52,9 @@ fun AppNavigation(weatherState: WeatherState) {
             items.forEach {
                 if (currentRoute == it.route) {
                     when (it.route) {
-                        Routes.Weather.route -> TopBarWeather(weatherState)
-                        Routes.Location.route -> TopBarLocations(stateTopBarLocation)
+                        Routes.Weather.route -> TopBarWeather(weatherState, viewModel)
+                        Routes.Location.route -> TopBarLocations(stateTopBarLocation, viewModel,
+                            navController)
                         Routes.Settings.route -> TopBarSettings()
                     }
                 }
@@ -55,7 +63,7 @@ fun AppNavigation(weatherState: WeatherState) {
 
         content = { padding ->
             Box(modifier = Modifier.padding(padding)) {
-                AppNavHost(navController = navController, weatherState)
+                AppNavHost(navController = navController, weatherState, allLocations, viewModel)
             }
         },
 
@@ -108,7 +116,8 @@ fun AppNavigation(weatherState: WeatherState) {
 }
 
 @Composable
-fun TopBarLocations(stateTopBarLocation: MutableState<StateTopBarLocation>) {
+fun TopBarLocations(stateTopBarLocation: MutableState<StateTopBarLocation>, viewModel: WeatherViewModel,
+                    navController: NavController) {
     val colorTheme = colorResource(SharedPreference(LocalContext.current).getValueColor())
     val it = Routes.Location
 
@@ -139,16 +148,22 @@ fun TopBarLocations(stateTopBarLocation: MutableState<StateTopBarLocation>) {
         }
 
         StateTopBarLocation.OPENED -> {
-            SearchLocation(stateTopBarLocation)
+            SearchLocation(stateTopBarLocation, viewModel, navController)
         }
     }
 }
 
 @Composable
-fun TopBarWeather(weatherState: WeatherState) {
+fun TopBarWeather(weatherState: WeatherState, viewModel: WeatherViewModel) {
     val sharedPref = SharedPreference(LocalContext.current)
     val colorTheme = colorResource(sharedPref.getValueColor())
     val weather = weatherState.weatherInfo
+
+    if(weather != null){
+        val name = "${weather.location.name}, ${weather.location.country}"
+        sharedPref.saveValueLast(name)
+        viewModel.insertLocation(name)
+    }
 
     TopAppBar(
         title = {
@@ -193,7 +208,8 @@ fun TopBarSettings() {
 }
 
 @Composable
-fun SearchLocation(stateTopBarLocation: MutableState<StateTopBarLocation>) {
+fun SearchLocation(stateTopBarLocation: MutableState<StateTopBarLocation>,
+                   viewModel: WeatherViewModel, navController: NavController) {
     val stateText = remember { mutableStateOf("") }
     val context = LocalContext.current
 
@@ -243,8 +259,8 @@ fun SearchLocation(stateTopBarLocation: MutableState<StateTopBarLocation>) {
                         if (stateText.value.isEmpty()) {
                             Toast.makeText(context, "Error", Toast.LENGTH_LONG).show()
                         } else {
-                            Toast.makeText(context, stateText.value, Toast.LENGTH_LONG).show()
-                            stateText.value = ""
+                            navController.navigate(Routes.Weather.route)
+                            viewModel.getWeatherInfoByLocation(stateText.value)
                         }
                     }
                 ) {
